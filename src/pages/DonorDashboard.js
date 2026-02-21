@@ -1,356 +1,500 @@
-import React, { useState } from 'react';
-import DonationTracker from '../components/DonationTracker';
+import React, { useState, useEffect } from 'react';
 import './DonorDashboard.css';
 
 function DonorDashboard() {
+  const [activeTab, setActiveTab] = useState('categories');
+  const [selectedCategory, setSelectedCategory] = useState(null);
+  const [showDonationForm, setShowDonationForm] = useState(false);
+  
+  // Donation form state
   const [formData, setFormData] = useState({
-    donorName: '',
-    donorEmail: '',
-    donorPhone: '',
-    bookTitle: '',
-    author: '',
+    category: '',
+    itemType: '',
     quantity: '',
-    condition: 'New',
-    category: 'Fiction',
-    pickupAddress: '',
-    pickupCity: '',
-    pickupState: '',
-    pickupZip: '',
+    pickupLocation: '',
+    pickupTime: '',
+    pickupDate: '',
   });
 
-  const [otpSent, setOtpSent] = useState(false);
-  const [otpValue, setOtpValue] = useState('');
-  const [otpVerified, setOtpVerified] = useState(false);
-  const [donationSubmitted, setDonationSubmitted] = useState(false);
-  const [currentDonation, setCurrentDonation] = useState(null);
+  // Sample data for demonstration
+  const [donations, setDonations] = useState([]);
+  const [activeDonation, setActiveDonation] = useState(null);
+
+  // Load donations from localStorage on mount
+  useEffect(() => {
+    const storedDonations = JSON.parse(localStorage.getItem('donorDonations') || '[]');
+    setDonations(storedDonations);
+    // Set the most recent active donation
+    const active = storedDonations.find(d => d.status !== 'delivered');
+    if (active) setActiveDonation(active);
+  }, []);
+
+  // Donation Categories
+  const categories = [
+    { id: 'food', icon: '🍚', name: 'Food', description: 'Dry food, cooked meals, groceries', items: ['Rice', 'Dal', 'Vegetables', 'Cooked Meals', 'Biscuits', 'Bread'] },
+    { id: 'clothes', icon: '👕', name: 'Clothes', description: 'New / usable clothes', items: ['Shirts', 'Pants', 'Sarees', 'Kids Wear', 'Winter Wear', 'Shoes'] },
+    { id: 'education', icon: '📚', name: 'Education', description: 'Books, stationery, bags', items: ['Textbooks', 'Notebooks', 'Pens/Pencils', 'School Bags', 'Geometry Box', 'Calculator'] },
+    { id: 'medical', icon: '🩺', name: 'Medical Supplies', description: 'First aid, medicines', items: ['First Aid Kit', 'Bandages', 'OTC Medicines', 'Masks', 'Sanitizers', 'Thermometer'] },
+    { id: 'children', icon: '🧸', name: 'Children Essentials', description: 'Toys, hygiene kits', items: ['Toys', 'Baby Food', 'Diapers', 'Baby Clothes', 'Hygiene Kit', 'Feeding Bottles'] },
+    { id: 'daily', icon: '🏠', name: 'Daily Essentials', description: 'Blankets, utensils', items: ['Blankets', 'Utensils', 'Mattress', 'Pillow', 'Bucket', 'Water Bottles'] },
+  ];
+
+  // Sample beneficiary data
+  const beneficiaries = [
+    { id: 1, type: 'Children', location: 'Mumbai, Maharashtra', need: 'Educational supplies for underprivileged children', verified: true, icon: '👧' },
+    { id: 2, type: 'Elderly', location: 'Delhi, NCR', need: 'Daily essentials and medical supplies', verified: true, icon: '👴' },
+    { id: 3, type: 'Shelter Home', location: 'Bangalore, Karnataka', need: 'Clothes and blankets for winter', verified: true, icon: '🏠' },
+    { id: 4, type: 'Orphanage', location: 'Chennai, Tamil Nadu', need: 'Food supplies and children essentials', verified: true, icon: '🏛️' },
+  ];
+
+  // Sample volunteer data
+  const assignedVolunteer = {
+    name: 'Rahul Sharma',
+    phone: '+91 98765 43210',
+    rating: 4.8,
+    pickupsCompleted: 156,
+    status: 'assigned',
+    avatar: '👨‍💼'
+  };
+
+  // Sample impact data
+  const impactData = [
+    { id: 1, image: '📸', message: 'Thank you for the books! The children loved them.', tag: 'Helped 15 children', date: '2026-02-15' },
+    { id: 2, image: '📸', message: 'The blankets kept us warm during winter nights.', tag: 'Helped 8 elderly', date: '2026-02-10' },
+    { id: 3, image: '📸', message: 'Food supplies lasted us an entire week!', tag: 'Fed 25 people', date: '2026-02-05' },
+  ];
+
+  // Status tracker steps
+  const statusSteps = [
+    { id: 1, label: 'Donation Registered', icon: '📝' },
+    { id: 2, label: 'Volunteer Assigned', icon: '🙋' },
+    { id: 3, label: 'Pickup Completed', icon: '🚗' },
+    { id: 4, label: 'Delivered to Beneficiary', icon: '🎁' },
+  ];
+
+  const handleCategorySelect = (category) => {
+    setSelectedCategory(category);
+    setFormData(prev => ({ ...prev, category: category.id, itemType: '' }));
+    setShowDonationForm(true);
+  };
 
   const handleInputChange = (e) => {
     const { name, value } = e.target;
     setFormData(prev => ({ ...prev, [name]: value }));
   };
 
-  const handleSendOtp = (e) => {
-    e.preventDefault();
-    // Simulate OTP sending
-    alert(`OTP sent to ${formData.donorPhone}`);
-    setOtpSent(true);
-  };
-
-  const handleVerifyOtp = (e) => {
-    e.preventDefault();
-    // Simulate OTP verification (in real app, verify with backend)
-    if (otpValue === '123456' || otpValue.length === 6) {
-      alert('OTP verified successfully!');
-      setOtpVerified(true);
-    } else {
-      alert('Invalid OTP. Please try again.');
-    }
-  };
-
   const handleSubmitDonation = (e) => {
     e.preventDefault();
     
-    if (!otpVerified) {
-      alert('Please verify OTP first');
-      return;
-    }
-
-    // Create donation object with unique ID
-    const donation = {
+    const newDonation = {
       id: `DON${Date.now()}`,
       ...formData,
-      status: 'pending',
+      categoryName: selectedCategory?.name,
+      categoryIcon: selectedCategory?.icon,
+      status: 'registered',
+      currentStep: 1,
       timestamp: new Date().toISOString(),
-      pickupLocation: {
-        address: `${formData.pickupAddress}, ${formData.pickupCity}, ${formData.pickupState} ${formData.pickupZip}`,
-        coordinates: null // Will be geocoded by the tracker
-      }
+      volunteer: assignedVolunteer,
+      beneficiary: beneficiaries[Math.floor(Math.random() * beneficiaries.length)]
     };
 
-    // Store in localStorage
-    const existingDonations = JSON.parse(localStorage.getItem('donations') || '[]');
-    existingDonations.push(donation);
-    localStorage.setItem('donations', JSON.stringify(existingDonations));
-
-    setCurrentDonation(donation);
-    setDonationSubmitted(true);
-    alert('Donation submitted successfully! Track your donation below.');
-  };
-
-  const handleReset = () => {
+    const updatedDonations = [...donations, newDonation];
+    setDonations(updatedDonations);
+    setActiveDonation(newDonation);
+    localStorage.setItem('donorDonations', JSON.stringify(updatedDonations));
+    
+    // Reset form
     setFormData({
-      donorName: '',
-      donorEmail: '',
-      donorPhone: '',
-      bookTitle: '',
-      author: '',
+      category: '',
+      itemType: '',
       quantity: '',
-      condition: 'New',
-      category: 'Fiction',
-      pickupAddress: '',
-      pickupCity: '',
-      pickupState: '',
-      pickupZip: '',
+      pickupLocation: '',
+      pickupTime: '',
+      pickupDate: '',
     });
-    setOtpSent(false);
-    setOtpValue('');
-    setOtpVerified(false);
-    setDonationSubmitted(false);
-    setCurrentDonation(null);
+    setSelectedCategory(null);
+    setShowDonationForm(false);
+    setActiveTab('tracker');
+    
+    alert('Donation request submitted successfully!');
   };
+
+  const getCurrentStep = (donation) => {
+    if (!donation) return 0;
+    switch(donation.status) {
+      case 'registered': return 1;
+      case 'assigned': return 2;
+      case 'picked': return 3;
+      case 'delivered': return 4;
+      default: return 1;
+    }
+  };
+
+  const renderCategories = () => (
+    <div className="categories-section">
+      <h2 className="section-title">What would you like to donate?</h2>
+      <p className="section-subtitle">Select a category to begin your donation</p>
+      <div className="categories-grid">
+        {categories.map(category => (
+          <div 
+            key={category.id} 
+            className={`category-card ${selectedCategory?.id === category.id ? 'selected' : ''}`}
+            onClick={() => handleCategorySelect(category)}
+          >
+            <span className="category-icon">{category.icon}</span>
+            <h3>{category.name}</h3>
+            <p>{category.description}</p>
+          </div>
+        ))}
+      </div>
+
+      {showDonationForm && selectedCategory && (
+        <div className="donation-form-modal">
+          <div className="donation-form-container">
+            <div className="form-header">
+              <h2>{selectedCategory.icon} Create Donation Request</h2>
+              <button className="close-btn" onClick={() => { setShowDonationForm(false); setSelectedCategory(null); }}>×</button>
+            </div>
+            <form onSubmit={handleSubmitDonation}>
+              <div className="form-group">
+                <label>Category</label>
+                <input type="text" value={`${selectedCategory.icon} ${selectedCategory.name}`} disabled />
+              </div>
+              
+              <div className="form-group">
+                <label>Select Item Type *</label>
+                <select 
+                  name="itemType" 
+                  value={formData.itemType} 
+                  onChange={handleInputChange}
+                  required
+                >
+                  <option value="">Choose an item...</option>
+                  {selectedCategory.items.map(item => (
+                    <option key={item} value={item}>{item}</option>
+                  ))}
+                </select>
+              </div>
+
+              <div className="form-group">
+                <label>Quantity (units) *</label>
+                <input 
+                  type="number" 
+                  name="quantity" 
+                  value={formData.quantity}
+                  onChange={handleInputChange}
+                  placeholder="Enter quantity"
+                  min="1"
+                  required
+                />
+              </div>
+
+              <div className="form-group">
+                <label>Pickup Location *</label>
+                <input 
+                  type="text" 
+                  name="pickupLocation" 
+                  value={formData.pickupLocation}
+                  onChange={handleInputChange}
+                  placeholder="Enter your full address"
+                  required
+                />
+              </div>
+
+              <div className="form-row">
+                <div className="form-group">
+                  <label>Preferred Pickup Date *</label>
+                  <input 
+                    type="date" 
+                    name="pickupDate" 
+                    value={formData.pickupDate}
+                    onChange={handleInputChange}
+                    required
+                  />
+                </div>
+                <div className="form-group">
+                  <label>Preferred Pickup Time *</label>
+                  <select 
+                    name="pickupTime" 
+                    value={formData.pickupTime}
+                    onChange={handleInputChange}
+                    required
+                  >
+                    <option value="">Select time slot...</option>
+                    <option value="9am-12pm">9:00 AM - 12:00 PM</option>
+                    <option value="12pm-3pm">12:00 PM - 3:00 PM</option>
+                    <option value="3pm-6pm">3:00 PM - 6:00 PM</option>
+                    <option value="6pm-9pm">6:00 PM - 9:00 PM</option>
+                  </select>
+                </div>
+              </div>
+
+              <div className="form-actions">
+                <button type="button" className="cancel-btn" onClick={() => { setShowDonationForm(false); setSelectedCategory(null); }}>
+                  Cancel
+                </button>
+                <button type="submit" className="submit-btn">
+                  Submit Donation Request
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+
+  const renderTracker = () => (
+    <div className="tracker-section">
+      <h2 className="section-title">Donation Status Tracker</h2>
+      {activeDonation ? (
+        <div className="tracker-container">
+          <div className="donation-info-bar">
+            <span className="donation-id">ID: {activeDonation.id}</span>
+            <span className="donation-item">{activeDonation.categoryIcon} {activeDonation.itemType} × {activeDonation.quantity}</span>
+          </div>
+          <div className="status-steps">
+            {statusSteps.map((step, index) => (
+              <div 
+                key={step.id} 
+                className={`status-step ${getCurrentStep(activeDonation) >= step.id ? 'completed' : ''} ${getCurrentStep(activeDonation) === step.id ? 'current' : ''}`}
+              >
+                <div className="step-icon">{step.icon}</div>
+                <div className="step-label">{step.label}</div>
+                {index < statusSteps.length - 1 && <div className="step-connector"></div>}
+              </div>
+            ))}
+          </div>
+          <div className="tracker-note">
+            <p>📌 Your donation is being processed. You will be notified at each step.</p>
+          </div>
+        </div>
+      ) : (
+        <div className="no-donation">
+          <p>No active donations. Start by creating a donation request!</p>
+          <button className="start-btn" onClick={() => setActiveTab('categories')}>
+            Create Donation
+          </button>
+        </div>
+      )}
+    </div>
+  );
+
+  const renderBeneficiaries = () => (
+    <div className="beneficiaries-section">
+      <h2 className="section-title">Beneficiary Details</h2>
+      <p className="section-subtitle">Your donations help these verified beneficiaries</p>
+      <div className="beneficiaries-grid">
+        {beneficiaries.map(beneficiary => (
+          <div key={beneficiary.id} className="beneficiary-card">
+            <div className="beneficiary-header">
+              <span className="beneficiary-icon">{beneficiary.icon}</span>
+              <div className="beneficiary-type">
+                <h3>{beneficiary.type}</h3>
+                {beneficiary.verified && <span className="verified-badge">✓ Verified</span>}
+              </div>
+            </div>
+            <div className="beneficiary-details">
+              <p className="location">📍 {beneficiary.location}</p>
+              <p className="need">{beneficiary.need}</p>
+            </div>
+          </div>
+        ))}
+      </div>
+      <div className="beneficiary-note">
+        <p>📌 All beneficiaries are verified by our team to ensure donations reach genuine needy people.</p>
+      </div>
+    </div>
+  );
+
+  const renderVolunteerPanel = () => (
+    <div className="volunteer-section">
+      <h2 className="section-title">Volunteer Coordination Panel</h2>
+      {activeDonation ? (
+        <div className="volunteer-container">
+          <div className="volunteer-card">
+            <div className="volunteer-avatar">{assignedVolunteer.avatar}</div>
+            <div className="volunteer-info">
+              <h3>{assignedVolunteer.name}</h3>
+              <p className="volunteer-rating">⭐ {assignedVolunteer.rating} ({assignedVolunteer.pickupsCompleted} pickups)</p>
+            </div>
+            <div className="volunteer-status">
+              <span className={`status-badge ${assignedVolunteer.status}`}>
+                {assignedVolunteer.status === 'assigned' ? '✓ Assigned' : 'Pending'}
+              </span>
+            </div>
+          </div>
+          <div className="volunteer-actions">
+            <button className="action-btn chat">
+              💬 Chat with Volunteer
+            </button>
+            <button className="action-btn call">
+              📞 Call Volunteer
+            </button>
+          </div>
+          <div className="pickup-status">
+            <h4>Pickup Confirmation Status</h4>
+            <div className="confirmation-steps">
+              <div className="conf-step completed">✓ Volunteer Notified</div>
+              <div className="conf-step completed">✓ Pickup Accepted</div>
+              <div className="conf-step pending">⏳ En Route to Pickup</div>
+              <div className="conf-step pending">○ Pickup Completed</div>
+            </div>
+          </div>
+        </div>
+      ) : (
+        <div className="no-volunteer">
+          <p>No volunteer assigned yet. Create a donation request to get matched with a volunteer.</p>
+        </div>
+      )}
+      <div className="volunteer-note">
+        <p>📌 Our volunteers help bridge the coordination gap between donors and beneficiaries.</p>
+      </div>
+    </div>
+  );
+
+  const renderHistory = () => (
+    <div className="history-section">
+      <h2 className="section-title">Donation History</h2>
+      <p className="section-subtitle">Track all your past donations</p>
+      {donations.length > 0 ? (
+        <div className="history-table-container">
+          <table className="history-table">
+            <thead>
+              <tr>
+                <th>Category</th>
+                <th>Item</th>
+                <th>Quantity</th>
+                <th>Date</th>
+                <th>Status</th>
+              </tr>
+            </thead>
+            <tbody>
+              {donations.map(donation => (
+                <tr key={donation.id}>
+                  <td>
+                    <span className="cat-icon">{donation.categoryIcon}</span>
+                    {donation.categoryName}
+                  </td>
+                  <td>{donation.itemType}</td>
+                  <td>{donation.quantity} units</td>
+                  <td>{new Date(donation.timestamp).toLocaleDateString()}</td>
+                  <td>
+                    <span className={`status-pill ${donation.status}`}>
+                      {donation.status === 'registered' && '📝 Registered'}
+                      {donation.status === 'assigned' && '🙋 Assigned'}
+                      {donation.status === 'picked' && '🚗 Picked Up'}
+                      {donation.status === 'delivered' && '✅ Delivered'}
+                    </span>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      ) : (
+        <div className="no-history">
+          <p>No donation history yet. Your donations will appear here once you make them.</p>
+        </div>
+      )}
+      <div className="history-note">
+        <p>📌 Keep track of all your contributions without any monetary tracking - just pure item-based records.</p>
+      </div>
+    </div>
+  );
+
+  const renderImpact = () => (
+    <div className="impact-section">
+      <h2 className="section-title">Your Impact</h2>
+      <p className="section-subtitle">See how your donations are making a difference</p>
+      <div className="impact-stats">
+        <div className="stat-card">
+          <span className="stat-number">{donations.length}</span>
+          <span className="stat-label">Total Donations</span>
+        </div>
+        <div className="stat-card">
+          <span className="stat-number">{donations.reduce((sum, d) => sum + parseInt(d.quantity || 0), 0)}</span>
+          <span className="stat-label">Items Donated</span>
+        </div>
+        <div className="stat-card">
+          <span className="stat-number">48</span>
+          <span className="stat-label">Lives Touched</span>
+        </div>
+      </div>
+      <div className="impact-stories">
+        <h3>Thank You Messages</h3>
+        {impactData.map(impact => (
+          <div key={impact.id} className="impact-card">
+            <div className="impact-image">{impact.image}</div>
+            <div className="impact-content">
+              <p className="impact-message">"{impact.message}"</p>
+              <div className="impact-meta">
+                <span className="impact-tag">🏷️ {impact.tag}</span>
+                <span className="impact-date">{new Date(impact.date).toLocaleDateString()}</span>
+              </div>
+            </div>
+          </div>
+        ))}
+      </div>
+      <div className="impact-note">
+        <p>📌 Every donation creates a ripple of positive change in someone's life!</p>
+      </div>
+    </div>
+  );
 
   return (
     <div className="donor-dashboard">
       <div className="dashboard-header">
-        <h1>Donor Dashboard</h1>
-        <p>Make a difference by donating books to those in need</p>
+        <h1>🤝 Donor Dashboard</h1>
+        <p>Make a meaningful difference in someone's life</p>
       </div>
 
-      {!donationSubmitted ? (
-        <div className="donation-form-container">
-          <form className="donation-form" onSubmit={otpVerified ? handleSubmitDonation : handleSendOtp}>
-            <div className="form-section">
-              <h2>Donor Information</h2>
-              <div className="form-row">
-                <div className="form-group">
-                  <label>Full Name *</label>
-                  <input
-                    type="text"
-                    name="donorName"
-                    value={formData.donorName}
-                    onChange={handleInputChange}
-                    required
-                    disabled={otpVerified}
-                  />
-                </div>
-                <div className="form-group">
-                  <label>Email *</label>
-                  <input
-                    type="email"
-                    name="donorEmail"
-                    value={formData.donorEmail}
-                    onChange={handleInputChange}
-                    required
-                    disabled={otpVerified}
-                  />
-                </div>
-              </div>
+      <div className="dashboard-tabs">
+        <button 
+          className={`tab-btn ${activeTab === 'categories' ? 'active' : ''}`}
+          onClick={() => setActiveTab('categories')}
+        >
+          📦 Donate
+        </button>
+        <button 
+          className={`tab-btn ${activeTab === 'tracker' ? 'active' : ''}`}
+          onClick={() => setActiveTab('tracker')}
+        >
+          📍 Track
+        </button>
+        <button 
+          className={`tab-btn ${activeTab === 'beneficiaries' ? 'active' : ''}`}
+          onClick={() => setActiveTab('beneficiaries')}
+        >
+          👥 Beneficiaries
+        </button>
+        <button 
+          className={`tab-btn ${activeTab === 'volunteer' ? 'active' : ''}`}
+          onClick={() => setActiveTab('volunteer')}
+        >
+          🙋 Volunteer
+        </button>
+        <button 
+          className={`tab-btn ${activeTab === 'history' ? 'active' : ''}`}
+          onClick={() => setActiveTab('history')}
+        >
+          📜 History
+        </button>
+        <button 
+          className={`tab-btn ${activeTab === 'impact' ? 'active' : ''}`}
+          onClick={() => setActiveTab('impact')}
+        >
+          💫 Impact
+        </button>
+      </div>
 
-              <div className="form-group">
-                <label>Phone Number *</label>
-                <div className="otp-input-group">
-                  <input
-                    type="tel"
-                    name="donorPhone"
-                    value={formData.donorPhone}
-                    onChange={handleInputChange}
-                    required
-                    disabled={otpSent}
-                    placeholder="Enter 10-digit phone number"
-                  />
-                  {!otpSent && (
-                    <button type="submit" className="otp-button">
-                      Send OTP
-                    </button>
-                  )}
-                </div>
-              </div>
-
-              {otpSent && !otpVerified && (
-                <div className="form-group">
-                  <label>Enter OTP *</label>
-                  <div className="otp-input-group">
-                    <input
-                      type="text"
-                      value={otpValue}
-                      onChange={(e) => setOtpValue(e.target.value)}
-                      placeholder="Enter 6-digit OTP"
-                      maxLength="6"
-                    />
-                    <button
-                      type="button"
-                      onClick={handleVerifyOtp}
-                      className="otp-button verify"
-                    >
-                      Verify OTP
-                    </button>
-                  </div>
-                  <small className="otp-hint">Use any 6-digit code for demo</small>
-                </div>
-              )}
-
-              {otpVerified && (
-                <div className="verification-badge">
-                  ✓ Phone Verified
-                </div>
-              )}
-            </div>
-
-            {otpVerified && (
-              <>
-                <div className="form-section">
-                  <h2>Book Details</h2>
-                  <div className="form-row">
-                    <div className="form-group">
-                      <label>Book Title *</label>
-                      <input
-                        type="text"
-                        name="bookTitle"
-                        value={formData.bookTitle}
-                        onChange={handleInputChange}
-                        required
-                      />
-                    </div>
-                    <div className="form-group">
-                      <label>Author *</label>
-                      <input
-                        type="text"
-                        name="author"
-                        value={formData.author}
-                        onChange={handleInputChange}
-                        required
-                      />
-                    </div>
-                  </div>
-
-                  <div className="form-row">
-                    <div className="form-group">
-                      <label>Quantity *</label>
-                      <input
-                        type="number"
-                        name="quantity"
-                        value={formData.quantity}
-                        onChange={handleInputChange}
-                        min="1"
-                        required
-                      />
-                    </div>
-                    <div className="form-group">
-                      <label>Condition *</label>
-                      <select
-                        name="condition"
-                        value={formData.condition}
-                        onChange={handleInputChange}
-                        required
-                      >
-                        <option value="New">New</option>
-                        <option value="Like New">Like New</option>
-                        <option value="Good">Good</option>
-                        <option value="Fair">Fair</option>
-                      </select>
-                    </div>
-                  </div>
-
-                  <div className="form-group">
-                    <label>Category *</label>
-                    <select
-                      name="category"
-                      value={formData.category}
-                      onChange={handleInputChange}
-                      required
-                    >
-                      <option value="Fiction">Fiction</option>
-                      <option value="Non-Fiction">Non-Fiction</option>
-                      <option value="Educational">Educational</option>
-                      <option value="Children">Children's Books</option>
-                      <option value="Reference">Reference</option>
-                      <option value="Other">Other</option>
-                    </select>
-                  </div>
-                </div>
-
-                <div className="form-section">
-                  <h2>Pickup Address</h2>
-                  <div className="form-group">
-                    <label>Street Address *</label>
-                    <input
-                      type="text"
-                      name="pickupAddress"
-                      value={formData.pickupAddress}
-                      onChange={handleInputChange}
-                      required
-                    />
-                  </div>
-
-                  <div className="form-row">
-                    <div className="form-group">
-                      <label>City *</label>
-                      <input
-                        type="text"
-                        name="pickupCity"
-                        value={formData.pickupCity}
-                        onChange={handleInputChange}
-                        required
-                      />
-                    </div>
-                    <div className="form-group">
-                      <label>State *</label>
-                      <input
-                        type="text"
-                        name="pickupState"
-                        value={formData.pickupState}
-                        onChange={handleInputChange}
-                        required
-                      />
-                    </div>
-                  </div>
-
-                  <div className="form-group">
-                    <label>ZIP Code *</label>
-                    <input
-                      type="text"
-                      name="pickupZip"
-                      value={formData.pickupZip}
-                      onChange={handleInputChange}
-                      required
-                    />
-                  </div>
-                </div>
-
-                <div className="form-actions">
-                  <button type="submit" className="submit-button">
-                    Submit Donation
-                  </button>
-                  <button type="button" onClick={handleReset} className="reset-button">
-                    Reset Form
-                  </button>
-                </div>
-              </>
-            )}
-          </form>
-        </div>
-      ) : (
-        <div className="donation-success">
-          <div className="success-message">
-            <div className="success-icon">✓</div>
-            <h2>Donation Submitted Successfully!</h2>
-            <p>Your donation ID: <strong>{currentDonation.id}</strong></p>
-            <p>A volunteer will be assigned to pick up your donation soon.</p>
-            <button onClick={handleReset} className="new-donation-button">
-              Make Another Donation
-            </button>
-          </div>
-
-          <div className="tracker-section">
-            <h2>Track Your Donation</h2>
-            <DonationTracker donationId={currentDonation.id} />
-          </div>
-        </div>
-      )}
-
-      <div className="dashboard-info">
-        <div className="info-card">
-          <h3>📚 Why Donate Books?</h3>
-          <p>Your donated books can change lives by providing education and knowledge to those who need it most.</p>
-        </div>
-        <div className="info-card">
-          <h3>🔒 Safe & Secure</h3>
-          <p>OTP verification ensures your donations are tracked securely from pickup to delivery.</p>
-        </div>
-        <div className="info-card">
-          <h3>📍 Live Tracking</h3>
-          <p>Track your donation in real-time and see exactly where your books are helping.</p>
-        </div>
+      <div className="dashboard-content">
+        {activeTab === 'categories' && renderCategories()}
+        {activeTab === 'tracker' && renderTracker()}
+        {activeTab === 'beneficiaries' && renderBeneficiaries()}
+        {activeTab === 'volunteer' && renderVolunteerPanel()}
+        {activeTab === 'history' && renderHistory()}
+        {activeTab === 'impact' && renderImpact()}
       </div>
     </div>
   );
