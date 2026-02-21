@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import './VolunteerDashboard.css';
 import { getAvailableDonations, getAcceptedDonations, acceptDonation, declineDonation, updateDeliveryStatus, completeDelivery } from '../utils/donationStorage';
+import VolunteerRouteMap from '../components/VolunteerRouteMap';
 
 function VolunteerDashboard() {
   const [activeTab, setActiveTab] = useState('available');
@@ -578,11 +579,15 @@ function VolunteerDashboard() {
           </div>
 
           <div className="map-container">
-            <div className="map-placeholder">
-              <div className="map-icon">🗺️</div>
-              <p>Interactive Map View</p>
-              <small>Mumbai, Maharashtra</small>
-            </div>
+            <VolunteerRouteMap
+              pickupLocation={selectedTask.pickupLocation}
+              pickupCoords={selectedTask.pickupCoords}
+              deliveryLocation={selectedTask.deliveryLocation}
+              deliveryCoords={selectedTask.deliveryCoords}
+              donorName={selectedTask.donorName}
+              itemName={selectedTask.items || selectedTask.itemType}
+              quantity={selectedTask.quantity}
+            />
           </div>
 
           <div className="route-details">

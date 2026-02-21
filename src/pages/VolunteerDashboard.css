@@ -680,6 +680,64 @@
 
 .map-container {
   margin-bottom: 25px;
+  border-radius: 16px;
+  overflow: hidden;
+  box-shadow: 0 8px 30px rgba(0, 0, 0, 0.15);
+}
+
+/* Leaflet Map Styles */
+.volunteer-map-container {
+  border-radius: 16px;
+  overflow: hidden;
+}
+
+.leaflet-container {
+  border-radius: 16px;
+  font-family: inherit;
+}
+
+.map-loading, .map-error {
+  height: 400px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  background: linear-gradient(135deg, #e8f5e9 0%, #c8e6c9 100%);
+  border-radius: 16px;
+  color: #2e7d32;
+}
+
+.map-error {
+  background: linear-gradient(135deg, #fff3e0, #ffe0b2);
+  color: #e65100;
+}
+
+.loading-spinner {
+  font-size: 3rem;
+  animation: mapSpin 2s linear infinite;
+}
+
+@keyframes mapSpin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+.map-popup h4 {
+  margin: 0 0 8px 0;
+  color: #2c3e50;
+  font-size: 1rem;
+  border-bottom: 1px solid #eee;
+  padding-bottom: 8px;
+}
+
+.map-popup p {
+  margin: 4px 0;
+  font-size: 0.85rem;
+  color: #555;
+}
+
+.map-popup strong {
+  color: #2c3e50;
 }
 
 .map-placeholder {
