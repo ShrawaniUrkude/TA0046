@@ -1,415 +1,479 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import './VolunteerDashboard.css';
 
 function VolunteerDashboard() {
-  const [volunteerInfo, setVolunteerInfo] = useState({
-    name: '',
-    phone: '',
-    email: '',
-    vehicle: 'Bike'
+  const [activeTab, setActiveTab] = useState('profile');
+  
+  // Volunteer Profile State
+  const [volunteerProfile, setVolunteerProfile] = useState({
+    name: 'Rahul Sharma',
+    volunteerId: 'VOL2026001',
+    phone: '+91 98765 43210',
+    email: 'rahul.sharma@email.com',
+    assignedArea: 'Mumbai Central, Maharashtra',
+    availability: 'available',
+    vehicleType: 'Bike',
+    verified: true,
+    rating: 4.8,
+    completedDeliveries: 156,
+    joinedDate: '2025-06-15'
   });
-  
-  const [otpSent, setOtpSent] = useState(false);
-  const [otpValue, setOtpValue] = useState('');
-  const [otpVerified, setOtpVerified] = useState(false);
-  const [isRegistered, setIsRegistered] = useState(false);
-  
-  const [availableDonations, setAvailableDonations] = useState([]);
-  const [assignedTask, setAssignedTask] = useState(null);
-  const [selectedNeedy, setSelectedNeedy] = useState(null);
-  const [deliveryOtp, setDeliveryOtp] = useState('');
-  
-  const needyPeople = [
-    { id: 1, name: 'Shanti Orphanage', address: '123 Hope Street, Mumbai, Maharashtra', type: 'Orphanage', contact: '+91 98765 43210' },
-    { id: 2, name: 'Rural School - Dharavi', address: '45 Education Lane, Dharavi, Mumbai', type: 'School', contact: '+91 97654 32109' },
-    { id: 3, name: 'Elder Care Home', address: '78 Senior Avenue, Pune, Maharashtra', type: 'Old Age Home', contact: '+91 96543 21098' },
-    { id: 4, name: 'Community Library', address: '90 Knowledge Road, Nagpur, Maharashtra', type: 'Library', contact: '+91 95432 10987' }
+
+  // Assigned Tasks State
+  const [assignedTasks, setAssignedTasks] = useState([
+    {
+      id: 'TASK001',
+      donorName: 'Priya Patel',
+      donorId: 'DON2026045',
+      category: 'Education',
+      categoryIcon: '📚',
+      items: 'Textbooks & Notebooks',
+      quantity: 25,
+      pickupLocation: '45 MG Road, Andheri West, Mumbai',
+      pickupCoords: { lat: 19.1364, lng: 72.8296 },
+      deliveryLocation: 'Shanti Orphanage, Dharavi, Mumbai',
+      deliveryCoords: { lat: 19.0420, lng: 72.8561 },
+      priority: 'high',
+      status: 'accepted',
+      distance: '12.5 km',
+      estimatedTime: '35 mins',
+      scheduledTime: '10:00 AM - 12:00 PM'
+    },
+    {
+      id: 'TASK002',
+      donorName: 'Amit Kumar',
+      donorId: 'DON2026067',
+      category: 'Food',
+      categoryIcon: '🍚',
+      items: 'Rice & Dal',
+      quantity: 50,
+      pickupLocation: '78 Station Road, Dadar, Mumbai',
+      pickupCoords: { lat: 19.0178, lng: 72.8478 },
+      deliveryLocation: 'Elder Care Home, Bandra, Mumbai',
+      deliveryCoords: { lat: 19.0544, lng: 72.8409 },
+      priority: 'medium',
+      status: 'pending',
+      distance: '8.2 km',
+      estimatedTime: '25 mins',
+      scheduledTime: '2:00 PM - 4:00 PM'
+    },
+    {
+      id: 'TASK003',
+      donorName: 'Sneha Reddy',
+      donorId: 'DON2026089',
+      category: 'Clothes',
+      categoryIcon: '👕',
+      items: 'Winter Clothes',
+      quantity: 40,
+      pickupLocation: '23 Hill Road, Bandra West, Mumbai',
+      pickupCoords: { lat: 19.0550, lng: 72.8260 },
+      deliveryLocation: 'Street Children Shelter, Kurla, Mumbai',
+      deliveryCoords: { lat: 19.0726, lng: 72.8794 },
+      priority: 'low',
+      status: 'pending',
+      distance: '15.3 km',
+      estimatedTime: '45 mins',
+      scheduledTime: '5:00 PM - 7:00 PM'
+    }
+  ]);
+
+  const [selectedTask, setSelectedTask] = useState(null);
+
+  // Task status steps
+  const taskStatusSteps = [
+    { id: 'accepted', label: 'Accepted', icon: '✓' },
+    { id: 'picked', label: 'Picked Up', icon: '📦' },
+    { id: 'transit', label: 'In Transit', icon: '🚗' },
+    { id: 'delivered', label: 'Delivered', icon: '🎁' }
   ];
 
-  useEffect(() => {
-    if (isRegistered) {
-      loadAvailableDonations();
-      const interval = setInterval(loadAvailableDonations, 5000);
-      return () => clearInterval(interval);
+  const getStatusIndex = (status) => {
+    const statusMap = { 'accepted': 0, 'picked': 1, 'transit': 2, 'delivered': 3 };
+    return statusMap[status] || 0;
+  };
+
+  const handleAvailabilityToggle = () => {
+    setVolunteerProfile(prev => ({
+      ...prev,
+      availability: prev.availability === 'available' ? 'busy' : 'available'
+    }));
+  };
+
+  const handleAcceptTask = (taskId) => {
+    setAssignedTasks(prev => prev.map(task => 
+      task.id === taskId ? { ...task, status: 'accepted' } : task
+    ));
+  };
+
+  const handleUpdateTaskStatus = (taskId, newStatus) => {
+    setAssignedTasks(prev => prev.map(task => 
+      task.id === taskId ? { ...task, status: newStatus } : task
+    ));
+    
+    if (newStatus === 'delivered') {
+      alert('Delivery completed successfully! Thank you for your service.');
+      setSelectedTask(null);
     }
-  }, [isRegistered]);
-
-  const loadAvailableDonations = () => {
-    const donations = JSON.parse(localStorage.getItem('donations') || '[]');
-    const pending = donations.filter(d => d.status === 'pending');
-    setAvailableDonations(pending);
   };
 
-  const handleSendOtp = (e) => {
-    e.preventDefault();
-    alert(`OTP sent to ${volunteerInfo.phone}`);
-    setOtpSent(true);
+  const handleSelectTask = (task) => {
+    setSelectedTask(task);
+    setActiveTab('navigation');
   };
 
-  const handleVerifyOtp = (e) => {
-    e.preventDefault();
-    if (otpValue === '123456' || otpValue.length === 6) {
-      alert('OTP verified successfully!');
-      setOtpVerified(true);
-    } else {
-      alert('Invalid OTP. Please try again.');
+  const getPriorityColor = (priority) => {
+    switch (priority) {
+      case 'high': return '#e74c3c';
+      case 'medium': return '#f39c12';
+      case 'low': return '#27ae60';
+      default: return '#95a5a6';
     }
   };
 
-  const handleRegister = (e) => {
-    e.preventDefault();
-    if (!otpVerified) {
-      alert('Please verify OTP first');
-      return;
-    }
-    
-    const volunteer = {
-      id: `VOL${Date.now()}`,
-      ...volunteerInfo,
-      registeredAt: new Date().toISOString()
-    };
-    
-    localStorage.setItem('currentVolunteer', JSON.stringify(volunteer));
-    setIsRegistered(true);
-    alert('Registration successful! You can now accept donation tasks.');
-  };
-
-  const handleAcceptTask = (donation) => {
-    const donations = JSON.parse(localStorage.getItem('donations') || '[]');
-    const updated = donations.map(d => {
-      if (d.id === donation.id) {
-        return {
-          ...d,
-          status: 'in-progress',
-          volunteer: JSON.parse(localStorage.getItem('currentVolunteer')),
-          acceptedAt: new Date().toISOString()
-        };
-      }
-      return d;
-    });
-    
-    localStorage.setItem('donations', JSON.stringify(updated));
-    setAssignedTask(updated.find(d => d.id === donation.id));
-    setAvailableDonations(updated.filter(d => d.status === 'pending'));
-    alert('Task accepted! Please proceed to pickup location.');
-  };
-
-  const handlePickup = () => {
-    const donations = JSON.parse(localStorage.getItem('donations') || '[]');
-    const updated = donations.map(d => {
-      if (d.id === assignedTask.id) {
-        return {
-          ...d,
-          status: 'picked-up',
-          pickedUpAt: new Date().toISOString()
-        };
-      }
-      return d;
-    });
-    
-    localStorage.setItem('donations', JSON.stringify(updated));
-    setAssignedTask(updated.find(d => d.id === assignedTask.id));
-    alert('Pickup confirmed! Now select the needy recipient.');
-  };
-
-  const handleSelectNeedy = (needy) => {
-    setSelectedNeedy(needy);
-  };
-
-  const handleStartDelivery = () => {
-    if (!selectedNeedy) {
-      alert('Please select a recipient first');
-      return;
-    }
-
-    const donations = JSON.parse(localStorage.getItem('donations') || '[]');
-    const updated = donations.map(d => {
-      if (d.id === assignedTask.id) {
-        return {
-          ...d,
-          status: 'in-transit',
-          recipient: selectedNeedy,
-          inTransitAt: new Date().toISOString(),
-          currentLocation: d.pickupLocation
-        };
-      }
-      return d;
-    });
-    
-    localStorage.setItem('donations', JSON.stringify(updated));
-    setAssignedTask(updated.find(d => d.id === assignedTask.id));
-    alert('Delivery started! The recipient will receive an OTP for verification.');
-  };
-
-  const handleCompleteDelivery = () => {
-    // In a real app, verify OTP with recipient's OTP
-    if (deliveryOtp.length !== 6) {
-      alert('Please enter a valid 6-digit OTP from the recipient');
-      return;
-    }
-
-    const donations = JSON.parse(localStorage.getItem('donations') || '[]');
-    const updated = donations.map(d => {
-      if (d.id === assignedTask.id) {
-        return {
-          ...d,
-          status: 'delivered',
-          deliveredAt: new Date().toISOString(),
-          deliveryOtpVerified: true
-        };
-      }
-      return d;
-    });
-    
-    localStorage.setItem('donations', JSON.stringify(updated));
-    
-    // Store completed delivery
-    const completedDeliveries = JSON.parse(localStorage.getItem('completedDeliveries') || '[]');
-    completedDeliveries.push(updated.find(d => d.id === assignedTask.id));
-    localStorage.setItem('completedDeliveries', JSON.stringify(completedDeliveries));
-    
-    alert('Delivery completed successfully! Thank you for your service.');
-    setAssignedTask(null);
-    setSelectedNeedy(null);
-    setDeliveryOtp('');
-    loadAvailableDonations();
-  };
-
-  if (!isRegistered) {
-    return (
-      <div className="volunteer-dashboard">
-        <div className="dashboard-header">
-          <h1>Volunteer Dashboard</h1>
-          <p>Register to start helping deliver donations to those in need</p>
+  // Volunteer Profile Section
+  const renderProfile = () => (
+    <div className="profile-section">
+      <div className="profile-card">
+        <div className="profile-header">
+          <div className="profile-avatar">👨‍💼</div>
+          <div className="profile-info">
+            <h2>{volunteerProfile.name}</h2>
+            <p className="volunteer-id">ID: {volunteerProfile.volunteerId}</p>
+            {volunteerProfile.verified && (
+              <span className="verified-badge">✓ Verified Volunteer</span>
+            )}
+          </div>
+          <div className="availability-toggle">
+            <span className="toggle-label">Status:</span>
+            <button 
+              className={`toggle-btn ${volunteerProfile.availability}`}
+              onClick={handleAvailabilityToggle}
+            >
+              {volunteerProfile.availability === 'available' ? '🟢 Available' : '🔴 Busy'}
+            </button>
+          </div>
         </div>
 
-        <div className="registration-form-container">
-          <form className="registration-form" onSubmit={otpVerified ? handleRegister : handleSendOtp}>
-            <h2>Volunteer Registration</h2>
-            
-            <div className="form-group">
-              <label>Full Name *</label>
-              <input
-                type="text"
-                value={volunteerInfo.name}
-                onChange={(e) => setVolunteerInfo({...volunteerInfo, name: e.target.value})}
-                required
-                disabled={otpVerified}
-              />
+        <div className="profile-details">
+          <div className="detail-row">
+            <span className="detail-icon">📍</span>
+            <div className="detail-content">
+              <label>Assigned Area</label>
+              <p>{volunteerProfile.assignedArea}</p>
             </div>
-
-            <div className="form-group">
-              <label>Email *</label>
-              <input
-                type="email"
-                value={volunteerInfo.email}
-                onChange={(e) => setVolunteerInfo({...volunteerInfo, email: e.target.value})}
-                required
-                disabled={otpVerified}
-              />
+          </div>
+          <div className="detail-row">
+            <span className="detail-icon">📞</span>
+            <div className="detail-content">
+              <label>Phone</label>
+              <p>{volunteerProfile.phone}</p>
             </div>
-
-            <div className="form-group">
-              <label>Phone Number *</label>
-              <div className="otp-input-group">
-                <input
-                  type="tel"
-                  value={volunteerInfo.phone}
-                  onChange={(e) => setVolunteerInfo({...volunteerInfo, phone: e.target.value})}
-                  required
-                  disabled={otpSent}
-                  placeholder="Enter 10-digit phone number"
-                />
-                {!otpSent && (
-                  <button type="submit" className="otp-button">
-                    Send OTP
-                  </button>
-                )}
-              </div>
+          </div>
+          <div className="detail-row">
+            <span className="detail-icon">📧</span>
+            <div className="detail-content">
+              <label>Email</label>
+              <p>{volunteerProfile.email}</p>
             </div>
+          </div>
+          <div className="detail-row">
+            <span className="detail-icon">🚗</span>
+            <div className="detail-content">
+              <label>Vehicle</label>
+              <p>{volunteerProfile.vehicleType}</p>
+            </div>
+          </div>
+        </div>
 
-            {otpSent && !otpVerified && (
-              <div className="form-group">
-                <label>Enter OTP *</label>
-                <div className="otp-input-group">
-                  <input
-                    type="text"
-                    value={otpValue}
-                    onChange={(e) => setOtpValue(e.target.value)}
-                    placeholder="Enter 6-digit OTP"
-                    maxLength="6"
-                  />
-                  <button
-                    type="button"
-                    onClick={handleVerifyOtp}
-                    className="otp-button verify"
-                  >
-                    Verify OTP
-                  </button>
-                </div>
-                <small className="otp-hint">Use any 6-digit code for demo</small>
-              </div>
-            )}
-
-            {otpVerified && (
-              <>
-                <div className="verification-badge">
-                  ✓ Phone Verified
-                </div>
-
-                <div className="form-group">
-                  <label>Vehicle Type *</label>
-                  <select
-                    value={volunteerInfo.vehicle}
-                    onChange={(e) => setVolunteerInfo({...volunteerInfo, vehicle: e.target.value})}
-                    required
-                  >
-                    <option value="Bike">Bike</option>
-                    <option value="Car">Car</option>
-                    <option value="Van">Van</option>
-                    <option value="Bicycle">Bicycle</option>
-                  </select>
-                </div>
-
-                <button type="submit" className="register-button">
-                  Complete Registration
-                </button>
-              </>
-            )}
-          </form>
+        <div className="profile-stats">
+          <div className="stat-item">
+            <span className="stat-value">⭐ {volunteerProfile.rating}</span>
+            <span className="stat-label">Rating</span>
+          </div>
+          <div className="stat-item">
+            <span className="stat-value">{volunteerProfile.completedDeliveries}</span>
+            <span className="stat-label">Deliveries</span>
+          </div>
+          <div className="stat-item">
+            <span className="stat-value">{new Date(volunteerProfile.joinedDate).toLocaleDateString('en-IN', { month: 'short', year: 'numeric' })}</span>
+            <span className="stat-label">Member Since</span>
+          </div>
         </div>
       </div>
-    );
-  }
 
-  return (
-    <div className="volunteer-dashboard">
-      <div className="dashboard-header">
-        <h1>Welcome, {volunteerInfo.name}!</h1>
-        <p>Thank you for volunteering to help deliver donations</p>
+      <div className="profile-note">
+        <p>📌 Your verified profile ensures accountability and trust with donors and beneficiaries.</p>
       </div>
+    </div>
+  );
 
-      {assignedTask ? (
-        <div className="task-container">
-          <div className="current-task">
-            <h2>Current Task</h2>
-            <div className="task-details">
-              <div className="task-info">
-                <p><strong>Donation ID:</strong> {assignedTask.id}</p>
-                <p><strong>Status:</strong> <span className={`status-badge ${assignedTask.status}`}>{assignedTask.status}</span></p>
-                <p><strong>Book:</strong> {assignedTask.bookTitle} by {assignedTask.author}</p>
-                <p><strong>Quantity:</strong> {assignedTask.quantity} book(s)</p>
-                <p><strong>Pickup Address:</strong> {assignedTask.pickupLocation.address}</p>
-                {assignedTask.recipient && (
-                  <p><strong>Delivery To:</strong> {assignedTask.recipient.name}</p>
-                )}
+  // Assigned Tasks Section
+  const renderTasks = () => (
+    <div className="tasks-section">
+      <h2 className="section-title">Assigned Donation Tasks</h2>
+      <p className="section-subtitle">Manage your pickup and delivery tasks</p>
+
+      <div className="tasks-list">
+        {assignedTasks.map(task => (
+          <div key={task.id} className={`task-card ${task.status === 'delivered' ? 'completed' : ''}`}>
+            <div className="task-header">
+              <div className="task-category">
+                <span className="category-icon">{task.categoryIcon}</span>
+                <span className="category-name">{task.category}</span>
               </div>
+              <div className="task-priority" style={{ background: getPriorityColor(task.priority) }}>
+                {task.priority.charAt(0).toUpperCase() + task.priority.slice(1)} Priority
+              </div>
+            </div>
 
+            <div className="task-body">
+              <div className="task-info-row">
+                <span className="info-label">👤 Donor:</span>
+                <span className="info-value">{task.donorName} ({task.donorId})</span>
+              </div>
+              <div className="task-info-row">
+                <span className="info-label">📦 Items:</span>
+                <span className="info-value">{task.items} × {task.quantity}</span>
+              </div>
+              <div className="task-info-row">
+                <span className="info-label">📍 Pickup:</span>
+                <span className="info-value">{task.pickupLocation}</span>
+              </div>
+              <div className="task-info-row">
+                <span className="info-label">🏠 Delivery:</span>
+                <span className="info-value">{task.deliveryLocation}</span>
+              </div>
+              <div className="task-info-row">
+                <span className="info-label">🕐 Schedule:</span>
+                <span className="info-value">{task.scheduledTime}</span>
+              </div>
+            </div>
+
+            <div className="task-footer">
+              <div className="task-meta">
+                <span className="meta-item">📏 {task.distance}</span>
+                <span className="meta-item">⏱️ {task.estimatedTime}</span>
+              </div>
               <div className="task-actions">
-                {assignedTask.status === 'in-progress' && (
-                  <button onClick={handlePickup} className="action-button pickup">
-                    Confirm Pickup
+                {task.status === 'pending' && (
+                  <button className="action-btn accept" onClick={() => handleAcceptTask(task.id)}>
+                    Accept Task
                   </button>
                 )}
-                
-                {assignedTask.status === 'picked-up' && !selectedNeedy && (
-                  <div className="needy-selection">
-                    <h3>Select Recipient</h3>
-                    <div className="needy-list">
-                      {needyPeople.map(needy => (
-                        <div
-                          key={needy.id}
-                          className={`needy-card ${selectedNeedy?.id === needy.id ? 'selected' : ''}`}
-                          onClick={() => handleSelectNeedy(needy)}
-                        >
-                          <h4>{needy.name}</h4>
-                          <p className="needy-type">{needy.type}</p>
-                          <p className="needy-address">{needy.address}</p>
-                          <p className="needy-contact">{needy.contact}</p>
-                        </div>
-                      ))}
-                    </div>
-                    <button
-                      onClick={handleStartDelivery}
-                      className="action-button delivery"
-                      disabled={!selectedNeedy}
-                    >
-                      Start Delivery to Selected Recipient
-                    </button>
-                  </div>
+                {task.status !== 'pending' && task.status !== 'delivered' && (
+                  <button className="action-btn navigate" onClick={() => handleSelectTask(task)}>
+                    Navigate
+                  </button>
                 )}
-
-                {assignedTask.status === 'in-transit' && (
-                  <div className="delivery-completion">
-                    <h3>Complete Delivery</h3>
-                    <p>Ask the recipient for their OTP to confirm delivery</p>
-                    <div className="form-group">
-                      <label>Recipient OTP</label>
-                      <input
-                        type="text"
-                        value={deliveryOtp}
-                        onChange={(e) => setDeliveryOtp(e.target.value)}
-                        placeholder="Enter 6-digit OTP"
-                        maxLength="6"
-                      />
-                    </div>
-                    <button onClick={handleCompleteDelivery} className="action-button complete">
-                      Complete Delivery
-                    </button>
-                  </div>
+                {task.status === 'delivered' && (
+                  <span className="completed-badge">✓ Completed</span>
                 )}
               </div>
             </div>
           </div>
+        ))}
+      </div>
+
+      <div className="tasks-note">
+        <p>📌 Accepting and completing tasks promptly helps build trust with donors and organizations.</p>
+      </div>
+    </div>
+  );
+
+  // Task Status Management Section
+  const renderStatusManagement = () => (
+    <div className="status-section">
+      <h2 className="section-title">Task Status Management</h2>
+      <p className="section-subtitle">Update the status of your active tasks</p>
+
+      {assignedTasks.filter(t => t.status !== 'pending' && t.status !== 'delivered').length === 0 ? (
+        <div className="no-active-tasks">
+          <p>No active tasks. Accept a task from the Tasks tab to get started.</p>
         </div>
       ) : (
-        <div className="available-tasks">
-          <h2>Available Donation Tasks</h2>
-          {availableDonations.length === 0 ? (
-            <div className="no-tasks">
-              <p>No pending donations at the moment. Check back soon!</p>
-            </div>
-          ) : (
-            <div className="tasks-grid">
-              {availableDonations.map(donation => (
-                <div key={donation.id} className="donation-card">
-                  <div className="donation-header">
-                    <h3>{donation.bookTitle}</h3>
-                    <span className="donation-id">{donation.id}</span>
-                  </div>
-                  <div className="donation-details">
-                    <p><strong>Author:</strong> {donation.author}</p>
-                    <p><strong>Quantity:</strong> {donation.quantity} book(s)</p>
-                    <p><strong>Condition:</strong> {donation.condition}</p>
-                    <p><strong>Category:</strong> {donation.category}</p>
-                    <p><strong>Pickup:</strong> {donation.pickupLocation.address}</p>
-                  </div>
-                  <button
-                    onClick={() => handleAcceptTask(donation)}
-                    className="accept-button"
-                  >
-                    Accept Task
-                  </button>
+        <div className="status-cards">
+          {assignedTasks.filter(t => t.status !== 'pending' && t.status !== 'delivered').map(task => (
+            <div key={task.id} className="status-card">
+              <div className="status-card-header">
+                <span className="task-icon">{task.categoryIcon}</span>
+                <div className="task-brief">
+                  <h3>{task.items}</h3>
+                  <p>{task.donorName} → {task.deliveryLocation.split(',')[0]}</p>
                 </div>
-              ))}
+              </div>
+
+              <div className="status-tracker">
+                {taskStatusSteps.map((step, index) => (
+                  <div 
+                    key={step.id}
+                    className={`status-step ${getStatusIndex(task.status) >= index ? 'completed' : ''} ${getStatusIndex(task.status) === index ? 'current' : ''}`}
+                  >
+                    <div className="step-circle">{step.icon}</div>
+                    <span className="step-label">{step.label}</span>
+                    {index < taskStatusSteps.length - 1 && <div className="step-line"></div>}
+                  </div>
+                ))}
+              </div>
+
+              <div className="status-actions">
+                {task.status === 'accepted' && (
+                  <button 
+                    className="status-btn pickup"
+                    onClick={() => handleUpdateTaskStatus(task.id, 'picked')}
+                  >
+                    📦 Confirm Pickup
+                  </button>
+                )}
+                {task.status === 'picked' && (
+                  <button 
+                    className="status-btn transit"
+                    onClick={() => handleUpdateTaskStatus(task.id, 'transit')}
+                  >
+                    🚗 Start Transit
+                  </button>
+                )}
+                {task.status === 'transit' && (
+                  <button 
+                    className="status-btn deliver"
+                    onClick={() => handleUpdateTaskStatus(task.id, 'delivered')}
+                  >
+                    🎁 Complete Delivery
+                  </button>
+                )}
+              </div>
             </div>
-          )}
+          ))}
         </div>
       )}
 
-      <div className="volunteer-info">
-        <div className="info-card">
-          <h3>📦 Your Role</h3>
-          <p>Pick up donations from donors and deliver them to verified recipients in need.</p>
+      <div className="status-note">
+        <p>📌 Each status update improves transparency for donors and NGOs tracking their donations.</p>
+      </div>
+    </div>
+  );
+
+  // Navigation & Route Assistance Section
+  const renderNavigation = () => (
+    <div className="navigation-section">
+      <h2 className="section-title">Navigation & Route Assistance</h2>
+      <p className="section-subtitle">Get directions and estimated times for your deliveries</p>
+
+      {selectedTask ? (
+        <div className="navigation-container">
+          <div className="selected-task-info">
+            <div className="task-badge">{selectedTask.categoryIcon} {selectedTask.category}</div>
+            <h3>{selectedTask.items} × {selectedTask.quantity}</h3>
+          </div>
+
+          <div className="map-container">
+            <div className="map-placeholder">
+              <div className="map-icon">🗺️</div>
+              <p>Interactive Map View</p>
+              <small>Mumbai, Maharashtra</small>
+            </div>
+          </div>
+
+          <div className="route-details">
+            <div className="location-card pickup">
+              <div className="location-marker">A</div>
+              <div className="location-info">
+                <label>📍 Pickup Location</label>
+                <p>{selectedTask.pickupLocation}</p>
+              </div>
+            </div>
+
+            <div className="route-line">
+              <div className="route-stats">
+                <span className="route-distance">📏 {selectedTask.distance}</span>
+                <span className="route-time">⏱️ {selectedTask.estimatedTime}</span>
+              </div>
+            </div>
+
+            <div className="location-card delivery">
+              <div className="location-marker">B</div>
+              <div className="location-info">
+                <label>🏠 Delivery Location</label>
+                <p>{selectedTask.deliveryLocation}</p>
+              </div>
+            </div>
+          </div>
+
+          <div className="navigation-actions">
+            <button className="nav-btn directions">
+              🧭 Get Directions
+            </button>
+            <button className="nav-btn call-donor">
+              📞 Call Donor
+            </button>
+            <button className="nav-btn call-recipient">
+              📞 Call Recipient
+            </button>
+          </div>
+
+          <div className="route-suggestion">
+            <h4>🚀 Suggested Route</h4>
+            <p>Take the Western Express Highway → Exit at Andheri → Turn left on MG Road → Destination on right</p>
+            <div className="route-tips">
+              <span className="tip">💡 Light traffic expected</span>
+              <span className="tip">⛽ 2 fuel stations on route</span>
+            </div>
+          </div>
         </div>
-        <div className="info-card">
-          <h3>🔐 OTP Verification</h3>
-          <p>Both pickup and delivery are secured with OTP verification for transparency.</p>
+      ) : (
+        <div className="no-task-selected">
+          <div className="empty-icon">🗺️</div>
+          <p>Select a task from the Tasks tab to view navigation</p>
+          <button className="select-task-btn" onClick={() => setActiveTab('tasks')}>
+            Go to Tasks
+          </button>
         </div>
-        <div className="info-card">
-          <h3>🎯 Make Impact</h3>
-          <p>Every delivery you make helps bring knowledge and hope to those who need it.</p>
-        </div>
+      )}
+
+      <div className="navigation-note">
+        <p>📌 Following suggested routes reduces delays and ensures timely deliveries.</p>
+      </div>
+    </div>
+  );
+
+  return (
+    <div className="volunteer-dashboard">
+      <div className="dashboard-header">
+        <h1>🙋 Volunteer Dashboard</h1>
+        <p>Welcome back, {volunteerProfile.name}!</p>
+      </div>
+
+      <div className="dashboard-tabs">
+        <button 
+          className={`tab-btn ${activeTab === 'profile' ? 'active' : ''}`}
+          onClick={() => setActiveTab('profile')}
+        >
+          👤 Profile
+        </button>
+        <button 
+          className={`tab-btn ${activeTab === 'tasks' ? 'active' : ''}`}
+          onClick={() => setActiveTab('tasks')}
+        >
+          📋 Tasks
+        </button>
+        <button 
+          className={`tab-btn ${activeTab === 'status' ? 'active' : ''}`}
+          onClick={() => setActiveTab('status')}
+        >
+          📊 Status
+        </button>
+        <button 
+          className={`tab-btn ${activeTab === 'navigation' ? 'active' : ''}`}
+          onClick={() => setActiveTab('navigation')}
+        >
+          🗺️ Navigate
+        </button>
+      </div>
+
+      <div className="dashboard-content">
+        {activeTab === 'profile' && renderProfile()}
+        {activeTab === 'tasks' && renderTasks()}
+        {activeTab === 'status' && renderStatusManagement()}
+        {activeTab === 'navigation' && renderNavigation()}
       </div>
     </div>
   );
