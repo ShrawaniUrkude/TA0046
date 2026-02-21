@@ -1,0 +1,494 @@
+.volunteer-dashboard {
+  min-height: 100vh;
+  background: linear-gradient(135deg, #ffecd2 0%, #fcb69f 100%);
+  padding: 20px;
+  padding-top: 80px;
+}
+
+.dashboard-header {
+  text-align: center;
+  margin-bottom: 40px;
+  color: #2c3e50;
+}
+
+.dashboard-header h1 {
+  font-size: 2.5rem;
+  margin-bottom: 10px;
+  font-weight: 700;
+}
+
+.dashboard-header p {
+  font-size: 1.2rem;
+  color: #555;
+}
+
+/* Registration Form */
+.registration-form-container {
+  max-width: 600px;
+  margin: 0 auto;
+  background: white;
+  border-radius: 15px;
+  padding: 40px;
+  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.1);
+}
+
+.registration-form h2 {
+  color: #667eea;
+  margin-bottom: 30px;
+  text-align: center;
+}
+
+.form-group {
+  margin-bottom: 20px;
+}
+
+.form-group label {
+  display: block;
+  margin-bottom: 8px;
+  color: #2c3e50;
+  font-weight: 600;
+}
+
+.form-group input,
+.form-group select {
+  width: 100%;
+  padding: 12px;
+  border: 2px solid #e0e0e0;
+  border-radius: 8px;
+  font-size: 1rem;
+  transition: all 0.3s ease;
+}
+
+.form-group input:focus,
+.form-group select:focus {
+  outline: none;
+  border-color: #667eea;
+  box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+}
+
+.form-group input:disabled {
+  background: #f5f5f5;
+  cursor: not-allowed;
+}
+
+.otp-input-group {
+  display: flex;
+  gap: 10px;
+}
+
+.otp-input-group input {
+  flex: 1;
+}
+
+.otp-button {
+  padding: 12px 24px;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+  border: none;
+  border-radius: 8px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  white-space: nowrap;
+}
+
+.otp-button:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
+}
+
+.otp-button.verify {
+  background: linear-gradient(135deg, #11998e 0%, #38ef7d 100%);
+}
+
+.otp-hint {
+  display: block;
+  margin-top: 5px;
+  color: #888;
+  font-size: 0.85rem;
+}
+
+.verification-badge {
+  display: inline-block;
+  padding: 10px 20px;
+  background: linear-gradient(135deg, #11998e 0%, #38ef7d 100%);
+  color: white;
+  border-radius: 20px;
+  font-weight: 600;
+  margin-bottom: 20px;
+}
+
+.register-button {
+  width: 100%;
+  padding: 15px;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+  border: none;
+  border-radius: 8px;
+  font-size: 1.1rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.register-button:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 10px 25px rgba(102, 126, 234, 0.4);
+}
+
+/* Task Container */
+.task-container {
+  max-width: 1200px;
+  margin: 0 auto;
+}
+
+.current-task {
+  background: white;
+  border-radius: 15px;
+  padding: 30px;
+  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.1);
+  margin-bottom: 30px;
+}
+
+.current-task h2 {
+  color: #667eea;
+  margin-bottom: 20px;
+}
+
+.task-details {
+  display: grid;
+  gap: 20px;
+}
+
+.task-info {
+  background: #f8f9fa;
+  padding: 20px;
+  border-radius: 10px;
+}
+
+.task-info p {
+  margin-bottom: 10px;
+  color: #2c3e50;
+}
+
+.task-info p:last-child {
+  margin-bottom: 0;
+}
+
+.status-badge {
+  display: inline-block;
+  padding: 5px 15px;
+  border-radius: 20px;
+  font-size: 0.9rem;
+  font-weight: 600;
+}
+
+.status-badge.in-progress {
+  background: #ffeaa7;
+  color: #d63031;
+}
+
+.status-badge.picked-up {
+  background: #74b9ff;
+  color: #0984e3;
+}
+
+.status-badge.in-transit {
+  background: #a29bfe;
+  color: #6c5ce7;
+}
+
+.status-badge.delivered {
+  background: #55efc4;
+  color: #00b894;
+}
+
+.task-actions {
+  margin-top: 20px;
+}
+
+.action-button {
+  width: 100%;
+  padding: 15px;
+  border: none;
+  border-radius: 8px;
+  font-size: 1.1rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  color: white;
+}
+
+.action-button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.action-button.pickup {
+  background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+}
+
+.action-button.delivery {
+  background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+  margin-top: 20px;
+}
+
+.action-button.complete {
+  background: linear-gradient(135deg, #43e97b 0%, #38f9d7 100%);
+}
+
+.action-button:hover:not(:disabled) {
+  transform: translateY(-2px);
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2);
+}
+
+/* Needy Selection */
+.needy-selection {
+  margin-top: 20px;
+}
+
+.needy-selection h3 {
+  color: #667eea;
+  margin-bottom: 15px;
+}
+
+.needy-list {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: 15px;
+  margin-bottom: 20px;
+}
+
+.needy-card {
+  background: #f8f9fa;
+  padding: 20px;
+  border-radius: 10px;
+  cursor: pointer;
+  border: 2px solid transparent;
+  transition: all 0.3s ease;
+}
+
+.needy-card:hover {
+  border-color: #667eea;
+  transform: translateY(-3px);
+  box-shadow: 0 5px 15px rgba(102, 126, 234, 0.2);
+}
+
+.needy-card.selected {
+  border-color: #667eea;
+  background: linear-gradient(135deg, rgba(102, 126, 234, 0.1), rgba(118, 75, 162, 0.1));
+}
+
+.needy-card h4 {
+  color: #2c3e50;
+  margin-bottom: 8px;
+}
+
+.needy-type {
+  color: #667eea;
+  font-weight: 600;
+  margin-bottom: 8px;
+  font-size: 0.9rem;
+}
+
+.needy-address {
+  color: #555;
+  font-size: 0.9rem;
+  margin-bottom: 8px;
+}
+
+.needy-contact {
+  color: #888;
+  font-size: 0.85rem;
+}
+
+/* Delivery Completion */
+.delivery-completion {
+  background: #f8f9fa;
+  padding: 20px;
+  border-radius: 10px;
+  margin-top: 20px;
+}
+
+.delivery-completion h3 {
+  color: #667eea;
+  margin-bottom: 15px;
+}
+
+.delivery-completion p {
+  color: #555;
+  margin-bottom: 15px;
+}
+
+/* Available Tasks */
+.available-tasks {
+  max-width: 1200px;
+  margin: 0 auto;
+}
+
+.available-tasks h2 {
+  color: #2c3e50;
+  margin-bottom: 30px;
+  text-align: center;
+}
+
+.no-tasks {
+  background: white;
+  border-radius: 15px;
+  padding: 60px 20px;
+  text-align: center;
+  box-shadow: 0 5px 20px rgba(0, 0, 0, 0.1);
+}
+
+.no-tasks p {
+  color: #888;
+  font-size: 1.2rem;
+}
+
+.tasks-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+  gap: 20px;
+}
+
+.donation-card {
+  background: white;
+  border-radius: 15px;
+  padding: 25px;
+  box-shadow: 0 5px 20px rgba(0, 0, 0, 0.1);
+  transition: all 0.3s ease;
+}
+
+.donation-card:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.15);
+}
+
+.donation-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: start;
+  margin-bottom: 15px;
+  padding-bottom: 15px;
+  border-bottom: 2px solid #f0f0f0;
+}
+
+.donation-header h3 {
+  color: #2c3e50;
+  font-size: 1.2rem;
+  flex: 1;
+}
+
+.donation-id {
+  background: #667eea;
+  color: white;
+  padding: 5px 12px;
+  border-radius: 15px;
+  font-size: 0.75rem;
+  font-weight: 600;
+}
+
+.donation-details p {
+  margin-bottom: 8px;
+  color: #555;
+  font-size: 0.95rem;
+}
+
+.donation-details p:last-child {
+  margin-bottom: 0;
+}
+
+.accept-button {
+  width: 100%;
+  margin-top: 20px;
+  padding: 12px;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+  border: none;
+  border-radius: 8px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.accept-button:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
+}
+
+/* Volunteer Info */
+.volunteer-info {
+  max-width: 1200px;
+  margin: 40px auto 0;
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+  gap: 20px;
+}
+
+.info-card {
+  background: white;
+  border-radius: 15px;
+  padding: 30px;
+  box-shadow: 0 5px 20px rgba(0, 0, 0, 0.1);
+  transition: all 0.3s ease;
+}
+
+.info-card:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.15);
+}
+
+.info-card h3 {
+  color: #667eea;
+  margin-bottom: 15px;
+  font-size: 1.3rem;
+}
+
+.info-card p {
+  color: #555;
+  line-height: 1.6;
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+  .volunteer-dashboard {
+    padding: 10px;
+    padding-top: 80px;
+  }
+
+  .dashboard-header h1 {
+    font-size: 2rem;
+  }
+
+  .dashboard-header p {
+    font-size: 1rem;
+  }
+
+  .registration-form-container {
+    padding: 20px;
+  }
+
+  .otp-input-group {
+    flex-direction: column;
+  }
+
+  .otp-button {
+    width: 100%;
+  }
+
+  .tasks-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .needy-list {
+    grid-template-columns: 1fr;
+  }
+
+  .volunteer-info {
+    grid-template-columns: 1fr;
+  }
+
+  .current-task {
+    padding: 20px;
+  }
+}
