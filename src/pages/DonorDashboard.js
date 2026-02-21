@@ -30,14 +30,14 @@ function DonorDashboard() {
     if (active) setActiveDonation(active);
   }, []);
 
-  // Donation Categories
+  // Donation Categories with urgency levels
   const categories = [
-    { id: 'food', icon: '🍚', name: 'Food', description: 'Dry food, cooked meals, groceries', items: ['Rice', 'Dal', 'Vegetables', 'Cooked Meals', 'Biscuits', 'Bread'] },
-    { id: 'clothes', icon: '👕', name: 'Clothes', description: 'New / usable clothes', items: ['Shirts', 'Pants', 'Sarees', 'Kids Wear', 'Winter Wear', 'Shoes'] },
-    { id: 'education', icon: '📚', name: 'Education', description: 'Books, stationery, bags', items: ['Textbooks', 'Notebooks', 'Pens/Pencils', 'School Bags', 'Geometry Box', 'Calculator'] },
-    { id: 'medical', icon: '🩺', name: 'Medical Supplies', description: 'First aid, medicines', items: ['First Aid Kit', 'Bandages', 'OTC Medicines', 'Masks', 'Sanitizers', 'Thermometer'] },
-    { id: 'children', icon: '🧸', name: 'Children Essentials', description: 'Toys, hygiene kits', items: ['Toys', 'Baby Food', 'Diapers', 'Baby Clothes', 'Hygiene Kit', 'Feeding Bottles'] },
-    { id: 'daily', icon: '🏠', name: 'Daily Essentials', description: 'Blankets, utensils', items: ['Blankets', 'Utensils', 'Mattress', 'Pillow', 'Bucket', 'Water Bottles'] },
+    { id: 'food', icon: '🍚', name: 'Food', description: 'Dry food, cooked meals, groceries', items: ['Rice', 'Dal', 'Vegetables', 'Cooked Meals', 'Biscuits', 'Bread'], urgency: 'critical', urgencyLabel: '🚨 Critical Need' },
+    { id: 'clothes', icon: '👕', name: 'Clothes', description: 'New / usable clothes', items: ['Shirts', 'Pants', 'Sarees', 'Kids Wear', 'Winter Wear', 'Shoes'], urgency: 'medium', urgencyLabel: '⚠️ High Demand' },
+    { id: 'education', icon: '📚', name: 'Education', description: 'Books, stationery, bags', items: ['Textbooks', 'Notebooks', 'Pens/Pencils', 'School Bags', 'Geometry Box', 'Calculator'], urgency: 'low', urgencyLabel: 'Regular' },
+    { id: 'medical', icon: '🩺', name: 'Medical Supplies', description: 'First aid, medicines', items: ['First Aid Kit', 'Bandages', 'OTC Medicines', 'Masks', 'Sanitizers', 'Thermometer'], urgency: 'emergency', urgencyLabel: '🆘 EMERGENCY' },
+    { id: 'children', icon: '🧸', name: 'Children Essentials', description: 'Toys, hygiene kits', items: ['Toys', 'Baby Food', 'Diapers', 'Baby Clothes', 'Hygiene Kit', 'Feeding Bottles'], urgency: 'critical', urgencyLabel: '🚨 Critical Need' },
+    { id: 'daily', icon: '🏠', name: 'Daily Essentials', description: 'Blankets, utensils', items: ['Blankets', 'Utensils', 'Mattress', 'Pillow', 'Bucket', 'Water Bottles'], urgency: 'medium', urgencyLabel: '⚠️ High Demand' },
   ];
 
   // Sample beneficiary data
@@ -147,9 +147,19 @@ function DonorDashboard() {
         {categories.map(category => (
           <div 
             key={category.id} 
-            className={`category-card ${selectedCategory?.id === category.id ? 'selected' : ''}`}
+            className={`category-card ${selectedCategory?.id === category.id ? 'selected' : ''} ${category.urgency === 'emergency' || category.urgency === 'critical' ? 'urgent' : ''}`}
             onClick={() => handleCategorySelect(category)}
           >
+            {(category.urgency === 'emergency' || category.urgency === 'critical') && (
+              <div className={`urgency-badge ${category.urgency}`}>
+                {category.urgencyLabel}
+              </div>
+            )}
+            {category.urgency === 'medium' && (
+              <div className="urgency-badge medium">
+                {category.urgencyLabel}
+              </div>
+            )}
             <span className="category-icon">{category.icon}</span>
             <h3>{category.name}</h3>
             <p>{category.description}</p>
