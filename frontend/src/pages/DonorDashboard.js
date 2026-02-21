@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import './DonorDashboard.css';
 
 function DonorDashboard() {
@@ -6,6 +6,12 @@ function DonorDashboard() {
   const [selectedCategory, setSelectedCategory] = useState(null);
   const [showDonationForm, setShowDonationForm] = useState(false);
   const [formStep, setFormStep] = useState(1);
+  const [showItemDropdown, setShowItemDropdown] = useState(false);
+  const [showConditionDropdown, setShowConditionDropdown] = useState(false);
+  const [showTimeDropdown, setShowTimeDropdown] = useState(false);
+  const itemDropdownRef = useRef(null);
+  const conditionDropdownRef = useRef(null);
+  const timeDropdownRef = useRef(null);
   
   // Donation form state
   const [formData, setFormData] = useState({
@@ -36,6 +42,39 @@ function DonorDashboard() {
     const active = storedDonations.find(d => d.status !== 'delivered');
     if (active) setActiveDonation(active);
   }, []);
+
+  // Close dropdowns when clicking outside
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (itemDropdownRef.current && !itemDropdownRef.current.contains(event.target)) {
+        setShowItemDropdown(false);
+      }
+      if (conditionDropdownRef.current && !conditionDropdownRef.current.contains(event.target)) {
+        setShowConditionDropdown(false);
+      }
+      if (timeDropdownRef.current && !timeDropdownRef.current.contains(event.target)) {
+        setShowTimeDropdown(false);
+      }
+    };
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, []);
+
+  // Condition options
+  const conditionOptions = [
+    { value: 'new', label: 'New (Unused)', icon: '✨', color: '#27ae60' },
+    { value: 'excellent', label: 'Excellent', icon: '👍', color: '#3498db' },
+    { value: 'good', label: 'Good', icon: '👌', color: '#f39c12' },
+    { value: 'fair', label: 'Fair', icon: '🤝', color: '#e67e22' },
+  ];
+
+  // Time slot options
+  const timeSlotOptions = [
+    { value: '9am-12pm', label: '9:00 AM - 12:00 PM', icon: '🌅' },
+    { value: '12pm-3pm', label: '12:00 PM - 3:00 PM', icon: '☀️' },
+    { value: '3pm-6pm', label: '3:00 PM - 6:00 PM', icon: '🌤️' },
+    { value: '6pm-9pm', label: '6:00 PM - 9:00 PM', icon: '🌙' },
+  ];
 
   // Donation Categories
   const categories = [
@@ -207,18 +246,35 @@ function DonorDashboard() {
                   
                   <div className="form-group">
                     <label>Select Item Type <span className="required">*</span></label>
-                    <select 
-                      name="itemType" 
-                      value={formData.itemType} 
-                      onChange={handleInputChange}
-                      required
-                      className="styled-select"
-                    >
-                      <option value="">Choose an item...</option>
-                      {selectedCategory.items.map(item => (
-                        <option key={item} value={item}>{item}</option>
-                      ))}
-                    </select>
+                    <div className="custom-dropdown" ref={itemDropdownRef}>
+                      <div 
+                        className={`dropdown-trigger ${showItemDropdown ? 'open' : ''} ${formData.itemType ? 'has-value' : ''}`}
+                        onClick={() => setShowItemDropdown(!showItemDropdown)}
+                      >
+                        <span className="dropdown-value">
+                          {formData.itemType || 'Choose an item...'}
+                        </span>
+                        <span className="dropdown-arrow">▼</span>
+                      </div>
+                      {showItemDropdown && (
+                        <div className="dropdown-menu">
+                          {selectedCategory.items.map((item, idx) => (
+                            <div 
+                              key={item} 
+                              className={`dropdown-item ${formData.itemType === item ? 'selected' : ''}`}
+                              onClick={() => {
+                                setFormData({...formData, itemType: item});
+                                setShowItemDropdown(false);
+                              }}
+                            >
+                              <span className="item-icon">{selectedCategory.icon}</span>
+                              <span className="item-label">{item}</span>
+                              {formData.itemType === item && <span className="check-icon">✓</span>}
+                            </div>
+                          ))}
+                        </div>
+                      )}
+                    </div>
                   </div>
 
                   <div className="form-row">
@@ -236,18 +292,35 @@ function DonorDashboard() {
                     </div>
                     <div className="form-group">
                       <label>Condition <span className="required">*</span></label>
-                      <select 
-                        name="condition" 
-                        value={formData.condition}
-                        onChange={handleInputChange}
-                        required
-                        className="styled-select"
-                      >
-                        <option value="new">New (Unused)</option>
-                        <option value="excellent">Excellent</option>
-                        <option value="good">Good</option>
-                        <option value="fair">Fair</option>
-                      </select>
+                      <div className="custom-dropdown" ref={conditionDropdownRef}>
+                        <div 
+                          className={`dropdown-trigger ${showConditionDropdown ? 'open' : ''} has-value`}
+                          onClick={() => setShowConditionDropdown(!showConditionDropdown)}
+                        >
+                          <span className="dropdown-value">
+                            {conditionOptions.find(c => c.value === formData.condition)?.icon} {conditionOptions.find(c => c.value === formData.condition)?.label}
+                          </span>
+                          <span className="dropdown-arrow">▼</span>
+                        </div>
+                        {showConditionDropdown && (
+                          <div className="dropdown-menu">
+                            {conditionOptions.map((option) => (
+                              <div 
+                                key={option.value} 
+                                className={`dropdown-item ${formData.condition === option.value ? 'selected' : ''}`}
+                                onClick={() => {
+                                  setFormData({...formData, condition: option.value});
+                                  setShowConditionDropdown(false);
+                                }}
+                              >
+                                <span className="item-icon">{option.icon}</span>
+                                <span className="item-label">{option.label}</span>
+                                {formData.condition === option.value && <span className="check-icon">✓</span>}
+                              </div>
+                            ))}
+                          </div>
+                        )}
+                      </div>
                     </div>
                   </div>
 
@@ -407,19 +480,38 @@ function DonorDashboard() {
                     </div>
                     <div className="form-group">
                       <label>Preferred Time <span className="required">*</span></label>
-                      <select 
-                        name="pickupTime" 
-                        value={formData.pickupTime}
-                        onChange={handleInputChange}
-                        required
-                        className="styled-select"
-                      >
-                        <option value="">Select time slot...</option>
-                        <option value="9am-12pm">🌅 9:00 AM - 12:00 PM</option>
-                        <option value="12pm-3pm">☀️ 12:00 PM - 3:00 PM</option>
-                        <option value="3pm-6pm">🌤️ 3:00 PM - 6:00 PM</option>
-                        <option value="6pm-9pm">🌙 6:00 PM - 9:00 PM</option>
-                      </select>
+                      <div className="custom-dropdown" ref={timeDropdownRef}>
+                        <div 
+                          className={`dropdown-trigger ${showTimeDropdown ? 'open' : ''} ${formData.pickupTime ? 'has-value' : ''}`}
+                          onClick={() => setShowTimeDropdown(!showTimeDropdown)}
+                        >
+                          <span className="dropdown-value">
+                            {formData.pickupTime 
+                              ? `${timeSlotOptions.find(t => t.value === formData.pickupTime)?.icon} ${timeSlotOptions.find(t => t.value === formData.pickupTime)?.label}`
+                              : 'Select time slot...'
+                            }
+                          </span>
+                          <span className="dropdown-arrow">▼</span>
+                        </div>
+                        {showTimeDropdown && (
+                          <div className="dropdown-menu">
+                            {timeSlotOptions.map((option) => (
+                              <div 
+                                key={option.value} 
+                                className={`dropdown-item ${formData.pickupTime === option.value ? 'selected' : ''}`}
+                                onClick={() => {
+                                  setFormData({...formData, pickupTime: option.value});
+                                  setShowTimeDropdown(false);
+                                }}
+                              >
+                                <span className="item-icon">{option.icon}</span>
+                                <span className="item-label">{option.label}</span>
+                                {formData.pickupTime === option.value && <span className="check-icon">✓</span>}
+                              </div>
+                            ))}
+                          </div>
+                        )}
+                      </div>
                     </div>
                   </div>
 
