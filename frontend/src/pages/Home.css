@@ -62,18 +62,21 @@
 .impact-image-section {
   padding: 0;
   position: relative;
+  width: 100%;
 }
 
 .impact-image-container {
   position: relative;
   overflow: hidden;
-  max-height: 500px;
+  width: 100%;
+  height: 300px;
 }
 
 .impact-image {
   width: 100%;
   height: 100%;
   object-fit: cover;
+  object-position: center;
   display: block;
 }
 
@@ -84,18 +87,32 @@
   right: 0;
   background: linear-gradient(to top, rgba(0, 0, 0, 0.8), transparent);
   color: white;
-  padding: 40px 20px;
+  padding: 30px 20px;
   text-align: center;
 }
 
 .impact-overlay h2 {
-  font-size: 2.5rem;
-  margin-bottom: 10px;
+  font-size: 2rem;
+  margin-bottom: 8px;
 }
 
 .impact-overlay p {
-  font-size: 1.2rem;
+  font-size: 1.1rem;
   opacity: 0.95;
+}
+
+@media (max-width: 768px) {
+  .impact-image-container {
+    height: 200px;
+  }
+  
+  .impact-overlay h2 {
+    font-size: 1.5rem;
+  }
+  
+  .impact-overlay p {
+    font-size: 1rem;
+  }
 }
 
 /* Problem Section */
